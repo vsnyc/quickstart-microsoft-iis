@@ -3,7 +3,7 @@
 [width="100%",cols="16%,11%,73%",options="header",]
 |===
 |Parameter label (name) |Default value|Description|Active Directory scenario type
-(`ADScenarioType`)|`AWS Directory Service for Microsoft Active Directory (Enterprise Edition)`|Select the type of deployment to use, either AWS Directory Service for Microsoft Active Directory or managing your own Amazon EC2 Active Directory instances.|Domain DNS name
+(`ADScenarioType`)|`AWS Directory Service for Microsoft AD (Enterprise Edition)`|Select the type of deployment to use, either AWS Directory Service for Microsoft Active Directory or managing your own Amazon EC2 Active Directory instances.|Domain DNS name
 (`DomainDNSName`)|`example.com`|Fully qualified domain name (FQDN) of the forest root domain.|Domain NetBIOS name
 (`DomainNetBIOSName`)|`example`|NetBIOS name of the domain for users of earlier Windows versions (up to 15 characters).|Domain administrator name
 (`DomainAdminUser`)|`Admin`|User name for the domain administrator account. This is separate from the default administrator account. Note: This is for a self-managed Active Directory scenario. When using AWS Directory Service for Microsoft Active Directory, "Admin" is the default regardless of the value provided.      |Domain administrator password
