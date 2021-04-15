@@ -805,6 +805,11 @@ p.footer-text a{color:#d7d8d8}
 <ul class="sectlevel2">
 <li><a href="#_sign_in_to_your_aws_account">Sign in to your AWS account</a></li>
 <li><a href="#_launch_the_quick_start">Launch the Quick Start</a></li>
+</ul>
+</li>
+<li><a href="#_post_deployment_steps">Post-deployment steps</a>
+<ul class="sectlevel2">
+<li><a href="#_run_windows_updates">Run Windows Updates</a></li>
 <li><a href="#_testing_the_deployment">Testing the deployment</a></li>
 </ul>
 </li>
@@ -814,7 +819,7 @@ p.footer-text a{color:#d7d8d8}
 <li><a href="#_connecting_to_a_windows_instance_with_rdp">Connecting to a Windows instance with RDP</a></li>
 </ul>
 </li>
-<li><a href="#_post_deployment_steps">Post-deployment steps</a></li>
+<li><a href="#_post_deployment_steps_2">Post-deployment steps</a></li>
 <li><a href="#_best_practices_for_using_iis_on_aws">Best practices for using IIS on AWS</a></li>
 <li><a href="#_faq">FAQ</a></li>
 <li><a href="#_troubleshooting">Troubleshooting</a></li>
@@ -1319,6 +1324,36 @@ This Quick Start does not support <a href="https://docs.aws.amazon.com/vpc/lates
 <div class="title">Figure 2. IIS outputs after successful deployment</div>
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_post_deployment_steps">Post-deployment steps</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_run_windows_updates">Run Windows Updates</h3>
+<div class="paragraph">
+<p>In order to ensure the deployed servers' operating systems and installed applications have the latest Microsoft updates, run Windows Update on each server.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create an RDP session from the Remote Desktop Gateway server to each deployed server.</p>
+</li>
+<li>
+<p>Open the <strong>Settings</strong> application.</p>
+</li>
+<li>
+<p>Open <strong>Update &amp; Security</strong>.</p>
+</li>
+<li>
+<p>Click <strong>Check for updates</strong>.</p>
+</li>
+<li>
+<p>Install any updates and reboot if necessary.</p>
+</li>
+</ol>
+</div>
+</div>
 <div class="sect2">
 <h3 id="_testing_the_deployment">Testing the deployment</h3>
 <div class="paragraph">
@@ -1468,7 +1503,7 @@ If you are unable to connect to the test page, review the security groups for th
 </div>
 </div>
 <div class="sect1">
-<h2 id="_post_deployment_steps">Post-deployment steps</h2>
+<h2 id="_post_deployment_steps_2">Post-deployment steps</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>If you want to modify this Quick Start see the <a href="https://github.com/aws-quickstart/quickstart-microsoft-iis/blob/main/templates/automation-parts.template.yaml">automation-parts.template.yaml</a> template. This AWS Cloudformation template uploads the MOF files and creates the automation documents that are triggered by the Auto Scaling group&#8217;s lifecycle hooks.</p>
