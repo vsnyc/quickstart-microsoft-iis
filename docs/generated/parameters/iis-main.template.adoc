@@ -1,4 +1,11 @@
 
+.Deployment Type
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|Deployment type for IIS
+(`DeploymentType`)|`ECS`|Deploy IIS on EC2 or ECS|ECS Windows Container Image
+(`ECSImage`)|`microsoft/iis`|ECS Container Image for Windows. Only needed if ECS deployment type is used
+|===
 .Active Directory configuration
 [width="100%",cols="16%,11%,73%",options="header",]
 |===
@@ -58,6 +65,13 @@
 (`ELBSchemeParameter`)|`internet-facing`|Choose whether the Elastic Load Balancer is public or private.|Elastic Load Balancers CIDR range
 (`WebAccessCIDR`)|`**__Requires input__**`|The CIDR IP range that is permitted to access the Elastic Load Balancers.|IIS servers instance type
 (`IISServerInstanceType`)|`t3.2xlarge`|Amazon EC2 instance type for the second Active Directory instance.
+|===
+.IIS Webpage
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|S3 Bucket Webpage Location
+(`WebBucketName`)|`**__Blank string__**`|Bucket name where html file is located for iis. If left blank, a sample page will be used.|S3 Key Webpage Location
+(`WebBucketKey`)|`webfiles/index.html`|Bucket Key where html file is located for iis. Only change S3 Bucket Wepage is specified, otherwise leave as default.
 |===
 .AWS Quick Start configuration
 [width="100%",cols="16%,11%,73%",options="header",]
