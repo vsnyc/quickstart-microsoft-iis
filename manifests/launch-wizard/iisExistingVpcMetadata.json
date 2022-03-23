@@ -1,0 +1,1015 @@
+{
+  "applicationName": "IIS",
+  "applicationDescription": "Microsoft IIS",
+  "applicationRole": "IISExistingVpc",
+  "schemaVersion": "1.0.1",
+  "provisioningParameters": [
+    "ASGDesiredCapacity",
+    "ASGMaxSize",
+    "ASGMinSize",
+    "DeploymentType",
+    "DomainAdminPassword",
+    "DomainAdminUser",
+    "DomainDNSName",
+    "DomainMemberSecurityGroup",
+    "DomainNetBIOSName",
+    "ECSImage",
+    "ELBSchemeParameter",
+    "ELBSubnet1ID",
+    "ELBSubnet2ID",
+    "IISServerInstanceType",
+    "PrivateSubnet1ID",
+    "PrivateSubnet2ID",
+    "QSS3BucketName",
+    "QSS3KeyPrefix",
+    "VPCID",
+    "WebAccessCIDR",
+    "WebBucketKey",
+    "WebBucketName"
+  ],
+  "sensitiveParameters": [
+    "DomainAdminPassword"
+  ],
+  "validationRules": [
+    {
+      "validationName": "AWS:LaunchWizard:VPCLimitValidation",
+      "validationParameters": [
+        {
+          "name" : "numberOfVpcs",
+          "values" : ["0"]
+        },
+        {
+          "name" : "numberOfEips",
+          "values" : ["0"]
+        },
+        {
+          "name" : "numberOfIgws",
+          "values" : ["0"]
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "pageId": "page1",
+      "pageTitle": "Configure application settings",
+      "pageDescription": "",
+      "pageOrder": 1,
+      "pageHelpPanelHeader": "Application settings",
+      "sections": [
+        {
+          "sectionId": "generalSection",
+          "sectionTitle": "General settings",
+          "sectionDescription": "",
+          "sectionFooter": "",
+          "sectionOrder": 1,
+          "fields": [
+            {
+              "fieldId": "lwdkGeneralCardWidget",
+              "fieldType": "LWDKGeneralComponent",
+              "isRequired": true,
+              "generalCardWidget": {
+                "fieldComponents": [
+                  "applicationName",
+                  "snsTopic",
+                  "disableRollback",
+                  "applicationTags"
+                ],
+                "titles": [
+                  "Deployment name",
+                  "Simple Notification Service (SNS) topic ARN",
+                  "Deactivate rollback on failed deployment",
+                  "Tags "
+                ],
+                "descriptions": [
+                  "Enter a unique name for this deployment.",
+                  "Enter an SNS topic for AWS Launch Wizard to send notifications and alerts.",
+                  "When a deployment fails, your provisioned resources will be deleted/rolled back by default. If deactivated, the provisioned resources will be deleted when you delete your deployment from the Launch Wizard console."
+                ],
+                "hintTexts": [
+                  "10 characters maximum. Only alphanumeric characters are allowed.",
+                  {
+                    "text": "Create new SNS topic",
+                    "link": "https://console.aws.amazon.com/sns/v3/home#/create-topic"
+                  },
+                  "When you select this option, your provisioned resources will not be deleted/rolled back after the deployment fails.",
+                  null
+                ],
+                "errorTexts": [
+                  "Enter a unique application name",
+                  "SNS topic not found",
+                  "Required field",
+                  "Required field"
+                ],
+                "validationRules": [
+                  {
+                    "key": "applicationName",
+                    "minLength": 1,
+                    "maxLength": 10,
+                    "validationType": "AlphaNumericStartWithAlpha"
+                  },
+                  {
+                    "key": "AWS:LaunchWizard:TopicArn"
+                  },
+                  {
+                    "key": "AWS:LaunchWizard:DisableRollbackFlag",
+                    "validationType": "isBoolean"
+                  },
+                  {
+                    "key": "AWS:LaunchWizard:CustomerTags",
+                    "maxLength": 10,
+                    "validationType": "AlphaNumeric"
+                  }
+                ],
+                "provisioningParameters": [
+                  "applicationName",
+                  "AWS:LaunchWizard:TopicArn",
+                  "AWS:LaunchWizard:DisableRollbackFlag",
+                  "AWS:LaunchWizard:CustomerTags"
+                ],
+                "isRequired": [
+                  true,
+                  false,
+                  false,
+                  false
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "DeploymentTypeSection",
+          "sectionTitle": "Deployment Type",
+          "sectionOrder": 2,
+          "fields": [
+            {
+              "fieldId": "DeploymentType",
+              "fieldType": "StaticDropdown",
+              "dropdownValues": [
+                {
+                  "value": "EC2",
+                  "label": "EC2"
+                },
+                {
+                  "value": "ECS",
+                  "label": "ECS"
+                }
+              ],
+              "title": "Deployment type for IIS",
+              "description": "Deploy IIS on EC2 Or ECS",
+              "defaultValue": "EC2",
+              "isRequired": true
+            },
+            {
+              "fieldId": "ECSImage",
+              "fieldType": "TextInput",
+              "title": "ECS Container Image",
+              "description": "ECS Container Image for Windows. Only needed if ECS deployment type is used",
+              "defaultValue": "microsoft/iis",
+              "isRequired": true
+            }
+          ]
+        },
+        {
+          "sectionId": "networkConfigurationSection",
+          "sectionTitle": "Network configuration",
+          "sectionOrder": 6,
+          "fields": [
+            {
+              "fieldId": "VPCID",
+              "fieldType": "DynamicDropdown",
+              "fieldHelpPanelHeader": "VPC ID",
+              "title": "VPC ID",
+              "description": "ID of the VPC (e.g., vpc-0343606e).",
+              "placeholder": "Select VPC",
+              "dropdownValues": {
+                "API": "DescribeVpcs"
+              },
+              "isRequired": true
+            },
+            {
+              "fieldId": "DomainMemberSecurityGroup",
+              "fieldType": "DynamicDropdown",
+              "title": "Domain member security group ID ",
+              "description": "Choose the EC2 security group that allows for Active Directory communication.",
+              "placeholder": "Select security group",
+              "dropdownValues": {
+                "API": "DescribeSecurityGroups",
+                "requestParameters": {
+                  "Filters": [
+                    {
+                      "Name": "vpc-id",
+                      "Values": [
+                        "Ref:VPCID"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "provisioningParameters": "DomainMemberSecurityGroup",
+              "isRequired": true
+            },
+            {
+              "fieldId": "lwdkPrivateSubnet1Widget",
+              "fieldType": "LWDKSubnetComponent",
+              "title": "Availability zone and private subnet",
+              "isRequired": true,
+              "subnetWidget": {
+                "fieldComponents": [
+                  "availabilityZone",
+                  "subnet"
+                ],
+                "titles": [
+                  "Availability zone 1 ",
+                  "Private subnet 1 ID"
+                ],
+                "fieldHelpPanelHeaders": [
+                  "Availability Zone",
+                  "Private Subnet"
+                ],
+                "descriptions": [
+                  "",
+                  "ID of private subnet 1 in Availability Zone 1 for the EC2 target group"
+                ],
+                "placeholders": [
+                  "Select an availability zone",
+                  "Select a private subnet"
+                ],
+                "hintTexts": [
+                  "",
+                  {
+                    "text": "Create a new subnet",
+                    "link": "https://console.aws.amazon.com/vpc/home#CreateSubnet:"
+                  }
+                ],
+                "dropdownValues": [
+                  {
+                    "key": "availabilityZone",
+                    "API": "DescribeAvailabilityZones"
+                  },
+                  {
+                    "key": "subnet",
+                    "API": "DescribeSubnets",
+                    "requestParameters": {
+                      "Filters": [
+                        {
+                          "Name": "availability-zone",
+                          "Values": [
+                            "Ref:lwdkPrivateSubnet1Widget_availabilityZone"
+                          ]
+                        },
+                        {
+                          "Name": "vpc-id",
+                          "Values": [
+                            "Ref:VPCID"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "dependsOn": [
+                  {
+                    "key": "availabilityZone",
+                    "function": "display",
+                    "refFieldId": "VPCID"
+                  },
+                  {
+                    "key": "subnet",
+                    "function": "display",
+                    "refFieldId": "VPCID"
+                  }
+                ],
+                "provisioningParameters": [
+                  null,
+                  "PrivateSubnet1ID"
+                ],
+                "isRequired": [
+                  true,
+                  true
+                ]
+              }
+            },
+            {
+              "fieldId": "lwdkPrivateSubnet2Widget",
+              "fieldType": "LWDKSubnetComponent",
+              "fieldHelpPanelHeader": "Private subnet",
+              "title": "Availability zone and private subnet",
+              "isRequired": true,
+              "subnetWidget": {
+                "fieldComponents": [
+                  "availabilityZone",
+                  "subnet"
+                ],
+                "titles": [
+                  "Availability zone 2 ",
+                  "Private subnet 2 ID"
+                ],
+                "fieldHelpPanelHeaders": [
+                  "Availability Zone",
+                  "Private Subnet"
+                ],
+                "descriptions": [
+                  "",
+                  "ID of private subnet 2 in Availability Zone 2 for the EC2 target group "
+                ],
+                "placeholders": [
+                  "Select an availability zone",
+                  "Select a private subnet"
+                ],
+                "hintTexts": [
+                  "",
+                  {
+                    "text": "Create a new subnet",
+                    "link": "https://console.aws.amazon.com/vpc/home#CreateSubnet:"
+                  }
+                ],
+                "dropdownValues": [
+                  {
+                    "key": "availabilityZone",
+                    "API": "DescribeAvailabilityZones"
+                  },
+                  {
+                    "key": "subnet",
+                    "API": "DescribeSubnets",
+                    "requestParameters": {
+                      "Filters": [
+                        {
+                          "Name": "availability-zone",
+                          "Values": [
+                            "Ref:lwdkPrivateSubnet2Widget_availabilityZone"
+                          ]
+                        },
+                        {
+                          "Name": "vpc-id",
+                          "Values": [
+                            "Ref:VPCID"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "dependsOn": [
+                  {
+                    "key": "availabilityZone",
+                    "function": "display",
+                    "refFieldId": "VPCID"
+                  },
+                  {
+                    "key": "subnet",
+                    "function": "display",
+                    "refFieldId": "VPCID"
+                  }
+                ],
+                "provisioningParameters": [
+                  null,
+                  "PrivateSubnet2ID"
+                ],
+                "isRequired": [
+                  true,
+                  true
+                ]
+              }
+            },
+            {
+              "fieldId": "lwdkPublicSubnet1Widget",
+              "fieldType": "LWDKSubnetComponent",
+              "title": "Availability zone and public subnet",
+              "isRequired": true,
+              "subnetWidget": {
+                "fieldComponents": [
+                  "availabilityZone",
+                  "subnet"
+                ],
+                "titles": [
+                  "Availability zone 1 ",
+                  "ELB subnet 1 ID"
+                ],
+                "fieldHelpPanelHeaders": [
+                  "Availability Zone",
+                  "Public Subnet"
+                ],
+                "descriptions": [
+                  "",
+                  "ID of subnet 1 in Availability Zone 1 where the Application Load Balancer will reside"
+                ],
+                "placeholders": [
+                  "Select an availability zone",
+                  "Select a public subnet"
+                ],
+                "hintTexts": [
+                  "",
+                  {
+                    "text": "Create a new subnet",
+                    "link": "https://console.aws.amazon.com/vpc/home#CreateSubnet:"
+                  }
+                ],
+                "dropdownValues": [
+                  {
+                    "key": "availabilityZone",
+                    "API": "DescribeAvailabilityZones"
+                  },
+                  {
+                    "key": "subnet",
+                    "API": "DescribeSubnets",
+                    "requestParameters": {
+                      "Filters": [
+                        {
+                          "Name": "availability-zone",
+                          "Values": [
+                            "Ref:lwdkPublicSubnet1Widget_availabilityZone"
+                          ]
+                        },
+                        {
+                          "Name": "vpc-id",
+                          "Values": [
+                            "Ref:VPCID"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "dependsOn": [
+                  {
+                    "key": "availabilityZone",
+                    "function": "display",
+                    "refFieldId": "VPCID"
+                  },
+                  {
+                    "key": "subnet",
+                    "function": "display",
+                    "refFieldId": "VPCID"
+                  }
+                ],
+                "provisioningParameters": [
+                  null,
+                  "ELBSubnet1ID"
+                ],
+                "isRequired": [
+                  true,
+                  true
+                ]
+              }
+            },
+            {
+              "fieldId": "lwdkPublicSubnet2Widget",
+              "fieldType": "LWDKSubnetComponent",
+              "fieldHelpPanelHeader": "Public subnet",
+              "title": "Availability zone and public subnet",
+              "isRequired": true,
+              "subnetWidget": {
+                "fieldComponents": [
+                  "availabilityZone",
+                  "subnet"
+                ],
+                "titles": [
+                  "Availability zone 2 ",
+                  "ELB subnet 2 ID"
+                ],
+                "fieldHelpPanelHeaders": [
+                  "Availability Zone",
+                  "Public Subnet"
+                ],
+                "descriptions": [
+                  "",
+                  "ID of subnet 2 in Availability Zone 2 where the Application Load Balancer will reside"
+                ],
+                "placeholders": [
+                  "Select an availability zone",
+                  "Select a public subnet"
+                ],
+                "hintTexts": [
+                  "",
+                  {
+                    "text": "Create a new subnet",
+                    "link": "https://console.aws.amazon.com/vpc/home#CreateSubnet:"
+                  }
+                ],
+                "dropdownValues": [
+                  {
+                    "key": "availabilityZone",
+                    "API": "DescribeAvailabilityZones"
+                  },
+                  {
+                    "key": "subnet",
+                    "API": "DescribeSubnets",
+                    "requestParameters": {
+                      "Filters": [
+                        {
+                          "Name": "availability-zone",
+                          "Values": [
+                            "Ref:lwdkPublicSubnet2Widget_availabilityZone"
+                          ]
+                        },
+                        {
+                          "Name": "vpc-id",
+                          "Values": [
+                            "Ref:VPCID"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "dependsOn": [
+                  {
+                    "key": "availabilityZone",
+                    "function": "display",
+                    "refFieldId": "VPCID"
+                  },
+                  {
+                    "key": "subnet",
+                    "function": "display",
+                    "refFieldId": "VPCID"
+                  }
+                ],
+                "provisioningParameters": [
+                  null,
+                  "ELBSubnet2ID"
+                ],
+                "isRequired": [
+                  true,
+                  true
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sectionId":"activeDirectoryConfigurationSection",
+          "sectionTitle":"Active Directory configuration",
+          "sectionOrder":3,
+          "fields":[
+            {
+              "fieldId":"DomainAdminUser",
+              "fieldType":"TextInput",
+              "title":"Domain Admin user name",
+              "description": "User name for the domain administrator account. This is separate from the default administrator account. Note: This is for a self-managed Active Directory scenario. When using AWS Directory Service for Microsoft Active Directory, \"Admin\" is the default regardless of the value provided.      ",
+              "hintText":"Must be at least 8 characters containing letters and numbers.",
+              "validationRules":{
+                "minLength":"5",
+                "maxLength":"25",
+                "validationType":"AlphaNumeric"
+              },
+              "defaultValue":"Admin",
+              "isRequired":true
+            },
+            {
+              "fieldId":"DomainAdminPassword",
+              "fieldType":"Password",
+              "title":"Admin password",
+              "description": "Password for the domain administrator. Must be at least 8 characters containing letters, numbers, and symbols.",
+              "placeholder":"Enter password",
+              "hintText":"Must be at least 8 characters containing letters, numbers and symbols",
+              "validationRules":{
+                "minLength":"8",
+                "maxLength":"32",
+                "customRegex":"(?=^.{6,255}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*"
+              },
+              "defaultValue":"",
+              "isRequired":true
+            },
+            {
+              "fieldId":"DomainNetBIOSName",
+              "fieldType":"TextInput",
+              "title":"Domain NetBIOS name",
+              "validationRules":{
+                "minLength":"1",
+                "maxLength":"15",
+                "customRegex":"^[^.][a-zA-Z0-9.]+[^:*?<>|`\\\\`]$"
+              },
+              "defaultValue":"EXAMPLE",
+              "description": "NetBIOS name of the domain for users of earlier Windows versions (up to 15 characters).",
+              "isRequired":true
+            },
+            {
+              "fieldId":"DomainDNSName",
+              "fieldType":"TextInput",
+              "title":"Domain DNS name",
+              "description": "Fully qualified domain name (FQDN) of the forest root domain.",
+              "validationRules":{
+                "minLength":"2",
+                "maxLength":"255",
+                "customRegex":"[a-zA-Z0-9\\-]+\\..+"
+              },
+              "defaultValue":"example.com",
+              "isRequired":true
+            }
+          ]
+        },
+        {
+          "sectionId":"webpageConfigurations",
+          "sectionTitle":"IIS Webpage configurations",
+          "sectionOrder":6,
+          "sectionHelpPanelHeader":"IIS Webpage configurations",
+          "fields":[
+            {
+              "fieldId":"WebBucketName",
+              "fieldType":"TextInput",
+              "title":"S3 Bucket Webpage Location",
+              "description": "Bucket name where html file is located for iis. If left blank, a sample page will be used.",
+              "defaultValue": "webfiles/index.html",
+              "isRequired":true
+            },
+            {
+              "fieldId":"WebBucketKey",
+              "fieldType":"TextInput",
+              "title":"S3 Key Webpage Location",
+              "description": "Bucket Key where html file is located for iis. Only change S3 Bucket Wepage is specified, otherwise leave as default.",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "sectionId":"autoScalingGroupConfigurations",
+          "sectionTitle":"Auto Scaling group / Application Load Balancer configuration",
+          "sectionOrder":7,
+          "sectionHelpPanelHeader":"Auto Scaling group / Application Load Balancer configuration",
+          "fields":[
+            {
+              "fieldId":"ASGDesiredCapacity",
+              "fieldType":"NumericInput",
+              "title":"Desired Capacity",
+              "placeholder":"Enter number",
+              "description": "Desired capacity of the Auto Scaling group.",
+              "hintText":"A minimum number of 2 and maximum number of 4 servers is allowed.",
+              "isRequired":true,
+              "validationRules":{
+                "validationType":"Numeric",
+                "min":2,
+                "max":4
+              }
+            },
+            {
+              "fieldId":"ASGMaxSize",
+              "fieldType":"NumericInput",
+              "title":"Max Capacity",
+              "placeholder":"Enter number",
+              "description": "Maximum instance size for the Auto Scaling group.",
+              "hintText":"A minimum number of 2 and maximum number of 4 servers is allowed.",
+              "isRequired":true,
+              "validationRules":{
+                "validationType":"Numeric",
+                "min":2,
+                "max":4
+              }
+            },
+            {
+              "fieldId":"ASGMinSize",
+              "fieldType":"NumericInput",
+              "title":"Min Capacity",
+              "placeholder":"Enter number",
+              "description": "Minimum instance size for the Auto Scaling group.",
+              "hintText":"A minimum number of 2 and maximum number of 4 servers is allowed.",
+              "isRequired":true,
+              "validationRules":{
+                "validationType":"Numeric",
+                "min":2,
+                "max":4
+              }
+            },
+            {
+              "fieldId":"WebAccessCIDR",
+              "fieldType":"TextInput",
+              "title":"WebAccess CIDR ",
+              "description": "The CIDR IP range that is permitted to access the Elastic Load Balancers.",
+              "validationRules":{
+                "validationType":"isValidCidr"
+              },
+              "defaultValue":"10.0.0.0/16",
+              "isRequired":true
+            },
+            {
+              "fieldId":"ELBSchemeParameter",
+              "fieldType":"StaticDropdown",
+              "title":"Deployment Type",
+              "description": "Choose whether the Elastic Load Balancer is public or private.",
+              "placeholder":"Placeholder text",
+              "defaultValue":"internet-facing",
+              "isRequired":true,
+              "isProvisioningParameter":true,
+              "dropdownValues":[
+                {
+                  "label":"internet-facing",
+                  "value":"internet-facing"
+                },
+                {
+                  "label":"internal",
+                  "value":"internal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pageId": "page2",
+      "pageTitle": "Configure infrastructure settings",
+      "pageDescription": "",
+      "pageOrder": 2,
+      "pageHelpPanelHeader": "Configure infrastructure settings",
+      "sections": [
+        {
+          "sectionTitle": "Storage and compute",
+          "sectionOrder": 1,
+          "sectionId": "storageAndComputeSection",
+          "sectionHelpPanelBody": "",
+          "fields": [
+            {
+              "fieldId": "LWDKSizerWidget",
+              "fieldType": "LwdkTileOptionsComponent",
+              "title": "Define infrastructure requirements",
+              "defaultValue": "recommendationSizer",
+              "isRequired": true,
+              "tileWidgets": [
+                {
+                  "fieldId": "sizerWithRecommendation",
+                  "fieldType": "LwdkRecommendationSizerComponent",
+                  "tileOptions": [
+                    {
+                      "value": "recommendationSizer",
+                      "label": "Based on infrastructure suggestion"
+                    }
+                  ],
+                  "tileWidgetResources": [
+                    {
+                      "fieldId": "instanceTypeRecommendations",
+                      "title":"IIS Server Instance",
+                      "fieldComponents": [
+                        {
+                          "fieldId": "TotalCoreCount",
+                          "fieldType": "StaticDropdown",
+                          "title": "Cores",
+                          "description": "Number of vCPU cores that the instance requires",
+                          "placeholder": "Placeholder text",
+                          "defaultValue": "4",
+                          "isRequired": true,
+                          "isProvisioningParameter": false,
+                          "dropdownValues": [
+                            {
+                              "id": "0",
+                              "label": "4",
+                              "value": "4"
+                            },
+                            {
+                              "id": "1",
+                              "label": "8",
+                              "value": "8"
+                            },
+                            {
+                              "id": "2",
+                              "label": "16",
+                              "value": "16"
+                            }
+                          ]
+                        },
+                        {
+                          "fieldId": "NetworkPerformanceInMbps",
+                          "fieldType": "StaticDropdown",
+                          "title": "Network Performance (Gbps)",
+                          "description": "The network performance required for each node",
+                          "placeholder": "Placeholder text",
+                          "defaultValue": "1",
+                          "isRequired": true,
+                          "isProvisioningParameter": false,
+                          "dropdownValues": [
+                            {
+                              "id":"0",
+                              "label": "Upto 10 Gbps",
+                              "value": "0"
+                            },
+                            {
+                              "id":"1",
+                              "label": "Above 10 Gbps",
+                              "value": "1"
+                            }
+                          ]
+                        },
+                        {
+                          "fieldId": "MemoryInGB",
+                          "fieldType": "StaticDropdown",
+                          "title": "Memory (Gb)",
+                          "description": "The amount of memory required for each node",
+                          "placeholder": "Placeholder text",
+                          "defaultValue": "4",
+                          "isRequired": true,
+                          "isProvisioningParameter": false,
+                          "dropdownValues": [
+                            {
+                              "id":"0",
+                              "label": "4 Gb",
+                              "value": "4"
+                            },
+                            {
+                              "id":"1",
+                              "label": "8 Gb",
+                              "value": "8"
+                            }
+                          ]
+                        },
+                        {
+                          "fieldId": "IISServerInstanceType",
+                          "fieldType": "DynamicKeyValue",
+                          "title":"IIS Instance type",
+                          "description": "Recommended instance type",
+                          "placeholder": "Placeholder text",
+                          "defaultValue": "",
+                          "isRequired": true,
+                          "isProvisioningParameter": true,
+                          "keyValues": {
+                            "API": "GetInfrastructureSuggestion",
+                            "requestType": "EC2_INSTANCE",
+                            "requestParameters": [
+                              "Ref:TotalCoreCount",
+                              "Ref:NetworkPerformanceInMbps",
+                              "Ref:MemoryInGB"
+                            ],
+                            "allowedTypes": [
+                              "t2.micro",
+                              "t2.small",
+                              "t2.medium",
+                              "t2.large",
+                              "t2.xlarge",
+                              "t2.2xlarge",
+                              "t3.micro",
+                              "t3.small",
+                              "t3.medium",
+                              "t3.large",
+                              "t3.xlarge",
+                              "t3.2xlarge",
+                              "m4.large",
+                              "m4.xlarge",
+                              "m4.2xlarge",
+                              "m4.4xlarge",
+                              "m4.10xlarge",
+                              "m5.large",
+                              "m5.xlarge",
+                              "m5.2xlarge",
+                              "m5.4xlarge",
+                              "m5.8xlarge",
+                              "m5.12xlarge",
+                              "m5.16xlarge",
+                              "m5.24xlarge",
+                              "c4.large",
+                              "c4.xlarge",
+                              "c4.2xlarge",
+                              "c4.4xlarge",
+                              "c4.8xlarge",
+                              "c5.large",
+                              "c5.xlarge",
+                              "c5.2xlarge",
+                              "c5.4xlarge",
+                              "c5.9xlarge",
+                              "c5.12xlarge",
+                              "c5.18xlarge",
+                              "c5.24xlarge",
+                              "r4.large",
+                              "r4.xlarge",
+                              "r4.2xlarge",
+                              "r4.4xlarge",
+                              "r4.8xlarge",
+                              "r5.large",
+                              "r5.xlarge",
+                              "r5.2xlarge",
+                              "r5.4xlarge",
+                              "r5.8xlarge",
+                              "r5.12xlarge",
+                              "r5.16xlarge",
+                              "r5.24xlarge"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "fieldId":"rdgwSizerWithStaticValue",
+                  "fieldType": "LwdkStaticSizerComponent",
+                  "tileOptions": [
+                    {
+                      "value": "staticSizer",
+                      "label": "Based on static values"
+                    }
+                  ],
+                  "tileWidgetResources": [
+                    {
+                      "fieldComponents": [
+                        {
+                          "fieldId": "IISServerInstanceType",
+                          "fieldType": "StaticDropdown",
+                          "title":"IIS Server Instance Type",
+                          "dropdownValues":[
+                            {
+                              "label":"t2.large",
+                              "value":"t2.large"
+                            },
+                            {
+                              "label":"t3.micro",
+                              "value":"t3.micro"
+                            },
+                            {
+                              "label":"t3.small",
+                              "value":"t3.small"
+                            },
+                            {
+                              "label":"t3.medium",
+                              "value":"t3.medium"
+                            },
+                            {
+                              "label":"t3.large",
+                              "value":"t3.large"
+                            },
+                            {
+                              "label":"t3.xlarge",
+                              "value":"t3.xlarge"
+                            },
+                            {
+                              "label":"t3.2xlarge",
+                              "value":"t3.2xlarge"
+                            },
+                            {
+                              "label":"m5.large",
+                              "value":"m5.large"
+                            },
+                            {
+                              "label":"m5.xlarge",
+                              "value":"m5.xlarge"
+                            },
+                            {
+                              "label":"m5.2xlarge",
+                              "value":"m5.2xlarge"
+                            },
+                            {
+                              "label":"m5.4xlarge",
+                              "value":"m5.4xlarge"
+                            },
+                            {
+                              "label":"m5.8xlarge",
+                              "value":"m5.8xlarge"
+                            },
+                            {
+                              "label":"m5.12xlarge",
+                              "value":"m5.12xlarge"
+                            },
+                            {
+                              "label":"m5.16xlarge",
+                              "value":"m5.16xlarge"
+                            },
+                            {
+                              "label":"m5.24xlarge",
+                              "value":"m5.24xlarge"
+                            }
+                          ],
+                          "defaultValue":"t3.micro",
+                          "isRequired":true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sectionTitle": "Estimated on-demand cost to deploy additional resources",
+          "sectionDescription": "Estimate of charges incurred to deploy the following resources.",
+          "sectionOrder": 2,
+          "sectionId": "costSection",
+          "sectionFooter": "This is only an estimate of AWS costs to deploy additional resources and does not include any taxes or discounts that may apply. Actual fees depend on many factors, including actual usage of AWS services.",
+          "fields": [
+            {
+              "fieldId": "ec2InstanceCost",
+              "fieldType": "LWDKCostComponent",
+              "dropdownValues": {
+                "API": "GetResourceCostEstimate",
+                "resourceSpecifications": [
+                  {
+                    "resourceTypeServiceCode":"AmazonEC2",
+                    "requestParameters":{
+                      "instanceType":"Ref:IISServerInstanceType",
+                      "operatingSystem":"windows",
+                      "Tenancy": "Shared",
+                      "capacitystatus": "Used",
+                      "licenseModel": "No License required",
+                      "preInstalledSw": "NA"
+                    },
+                    "header": "Instance type",
+                    "title":"IIS instance type",
+                    "numberOfResources":"Ref:ASGDesiredCapacity"
+                  }
+                ]
+              },
+              "isRequired": false,
+              "isProvisioningParameter": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

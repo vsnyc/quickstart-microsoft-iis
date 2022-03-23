@@ -1,0 +1,1270 @@
+{
+  "applicationName":"IIS",
+  "applicationDescription":"Microsoft IIS",
+  "applicationRole":"IISNewVpc",
+  "schemaVersion":"1.0.0",
+  "provisioningParameters":[
+    "ADScenarioType",
+    "ADServer1InstanceType",
+    "ADServer1NetBIOSName",
+    "ADServer1PrivateIP",
+    "ADServer2InstanceType",
+    "ADServer2NetBIOSName",
+    "ADServer2PrivateIP",
+    "ASGMinSize",
+    "ASGMaxSize",
+    "ASGDesiredCapacity",
+    "AvailabilityZones",
+    "DeploymentType",
+    "DomainAdminPassword",
+    "DomainAdminUser",
+    "DomainDNSName",
+    "DomainNetBIOSName",
+    "ECSImage",
+    "ELBSchemeParameter",
+    "IISServerInstanceType",
+    "KeyPairName",
+    "NumberOfRDGWHosts",
+    "NumberOfAZs",
+    "PrivateSubnet1CIDR",
+    "PrivateSubnet2CIDR",
+    "PrivateSubnet3CIDR",
+    "PublicSubnet1CIDR",
+    "PublicSubnet2CIDR",
+    "PublicSubnet3CIDR",
+    "RDGWInstanceType",
+    "RDGWCIDR",
+    "WebAccessCIDR",
+    "WebBucketName",
+    "WebBucketKey",
+    "VPCCIDR"
+  ],
+  "sensitiveParameters":[
+    "DomainAdminPassword"
+  ],
+  "validationRules":[
+    {
+      "validationName":"AWS:LaunchWizard:VPCLimitValidation",
+      "validationParameters":[
+        {
+          "name":"numberOfVpcs",
+          "values":[
+            "1"
+          ]
+        },
+        {
+          "name":"numberOfEips",
+          "values":[
+            "2"
+          ]
+        },
+        {
+          "name":"numberOfIgws",
+          "values":[
+            "1"
+          ]
+        }
+      ]
+    }
+  ],
+  "pages":[
+    {
+      "pageId":"page1",
+      "pageTitle":"Configure application settings",
+      "pageDescription":"",
+      "pageOrder":1,
+      "pageHelpPanelHeader":"Application settings",
+      "sections":[
+        {
+          "sectionId":"generalSection",
+          "sectionTitle":"General settings",
+          "sectionDescription":"",
+          "sectionFooter":"",
+          "sectionOrder":1,
+          "fields":[
+            {
+              "fieldId":"lwdkGeneralCardWidget",
+              "fieldType":"LWDKGeneralComponent",
+              "isRequired":true,
+              "generalCardWidget":{
+                "fieldComponents":[
+                  "applicationName",
+                  "snsTopic",
+                  "disableRollback",
+                  "applicationTags"
+                ],
+                "titles":[
+                  "Deployment name",
+                  "Simple Notification Service (SNS) topic ARN",
+                  "Deactivate rollback on failed deployment",
+                  "Tags "
+                ],
+                "descriptions":[
+                  "Enter a unique name for this deployment.",
+                  "Enter an SNS topic for AWS Launch Wizard to send notifications and alerts.",
+                  "When a deployment fails, your provisioned resources will be deleted/rolled back by default. If deactivated, the provisioned resources will be deleted when you delete your deployment from the Launch Wizard console."
+                ],
+                "hintTexts":[
+                  "10 characters maximum. Only alphanumeric characters are allowed.",
+                  {
+                    "text":"Create new SNS topic",
+                    "link":"https://console.aws.amazon.com/sns/v3/home#/create-topic"
+                  },
+                  "When you select this option, your provisioned resources will not be deleted/rolled back after the deployment fails.",
+                  null
+                ],
+                "errorTexts":[
+                  "Enter a unique application name",
+                  "SNS topic not found",
+                  "Required field",
+                  "Required field"
+                ],
+                "validationRules":[
+                  {
+                    "key":"applicationName",
+                    "minLength":"1",
+                    "maxLength":"10",
+                    "validationType":"AlphaNumericStartWithAlpha"
+                  },
+                  {
+                    "key":"AWS:LaunchWizard:TopicArn"
+                  },
+                  {
+                    "key":"AWS:LaunchWizard:DisableRollbackFlag",
+                    "validationType":"isBoolean"
+                  },
+                  {
+                    "key":"AWS:LaunchWizard:CustomerTags",
+                    "maxLength":"10",
+                    "validationType":"AlphaNumeric"
+                  }
+                ],
+                "provisioningParameters":[
+                  "applicationName",
+                  "AWS:LaunchWizard:TopicArn",
+                  "AWS:LaunchWizard:DisableRollbackFlag",
+                  "AWS:LaunchWizard:CustomerTags"
+                ],
+                "isRequired":[
+                  true,
+                  false,
+                  false,
+                  false
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sectionId":"networkConfigurationSection",
+          "sectionTitle":"Network configuration",
+          "sectionOrder":2,
+          "fields":[
+            {
+              "fieldId":"DeploymentType",
+              "fieldType":"StaticDropdown",
+              "title":"Deployment Type",
+              "description":"Enter deployment type",
+              "placeholder":"Placeholder text",
+              "defaultValue":"EC2",
+              "isRequired":true,
+              "isProvisioningParameter":true,
+              "dropdownValues":[
+                {
+                  "label":"EC2",
+                  "value":"EC2"
+                },
+                {
+                  "label":"ECS",
+                  "value":"ECS"
+                }
+              ]
+            },
+            {
+              "fieldId":"ECSImage",
+              "fieldType":"TextInput",
+              "fieldHelpPanelHeader":"ECS Container Image for Windows. Only needed if ECS deployment type is used",
+              "title":"ECS Container Image for Windows",
+              "errorText":"Error text",
+              "isRequired":true,
+              "defaultValue": "microsoft/iis",
+              "dependsOn": [
+                {
+                  "refFieldId": "DeploymentType",
+                  "function": "display",
+                  "value": "ECS"
+                }
+              ]
+            },
+            {
+              "fieldId":"KeyPairName",
+              "fieldType":"DynamicDropdown",
+              "title":"Key pair name",
+              "fieldHelpPanelHeader":"Key pair name",
+              "description":"Public/private key pairs allow you to securely connect to your instance after it launches.",
+              "hintText":{
+                "text":"Create new key pair name",
+                "link":"https://console.aws.amazon.com/ec2/v2/home#KeyPairs:sort=keyName"
+              },
+              "placeholder":"Select key pair name",
+              "dropdownValues":{
+                "API":"DescribeKeyPairs"
+              },
+              "isRequired":true
+            },
+            {
+              "fieldId":"AvailabilityZones",
+              "fieldType":"MultiSelect",
+              "fieldHelpPanelHeader":"Availability Zone",
+              "title":"Availability Zones",
+              "description":"List of Availability Zones (AZs) to use for the subnets in the VPC",
+              "placeholder":"Select Availability Zone(s)",
+              "dropdownValues":{
+                "API":"DescribeAvailabilityZones"
+              },
+              "validationRules":{
+                "equal":2
+              },
+              "isRequired":true
+            },
+            {
+              "fieldId":"VPCCIDR",
+              "fieldType":"TextInput",
+              "title":"VPC ",
+              "description":"CIDR block for the VPC.",
+              "validationRules":{
+                "validationType":"isValidCidr"
+              },
+              "defaultValue":"10.0.0.0/16",
+              "isRequired":true
+            },
+            {
+              "fieldId":"PrivateSubnet1CIDR",
+              "fieldType":"TextInput",
+              "title":"Private subnet 1 CIDR",
+              "description": "CIDR block for private subnet 1, located in Availability Zone 1.",
+              "validationRules":{
+                "validationType":"isValidCidr"
+              },
+              "defaultValue":"10.0.0.0/19",
+              "isRequired":true
+            },
+            {
+              "fieldId":"NumberOfAZs",
+              "fieldType":"NumericInput",
+              "title":"Number of Availability Zones",
+              "placeholder":"Enter number",
+              "description":"Number of Availability Zones to use in the VPC.",
+              "hintText":"A minimum number of 2 and maximum number of 3 zones is allowed.",
+              "isRequired":true,
+              "validationRules":{
+                "validationType":"Numeric",
+                "min":2,
+                "max":3
+              }
+            },
+            {
+              "fieldId":"PrivateSubnet2CIDR",
+              "fieldType":"TextInput",
+              "title":"Private subnet 2 CIDR",
+              "description": "CIDR block for private subnet 2, located in Availability Zone 2.",
+              "validationRules":{
+                "validationType":"isValidCidr"
+              },
+              "defaultValue":"10.0.32.0/19",
+              "isRequired":true
+            },
+            {
+              "fieldId":"PrivateSubnet3CIDR",
+              "fieldType":"TextInput",
+              "title":"Private subnet 3 CIDR",
+              "description":"CIDR block for private subnet 3 located in Availability Zone 3.",
+              "validationRules":{
+                "validationType":"isValidCidr"
+              },
+              "defaultValue":"10.0.64.0/19",
+              "dependsOn": [
+                {
+                  "refFieldId": "NumberOfAZs",
+                  "function": "display",
+                  "value": "3"
+                }
+              ],
+              "isRequired":true
+            },
+            {
+              "fieldId":"PublicSubnet1CIDR",
+              "fieldType":"TextInput",
+              "title":"Public subnet 1 CIDR ",
+              "description":"CIDR block for public subnet 1 located in Availability Zone 1.",
+              "validationRules":{
+                "validationType":"isValidCidr"
+              },
+              "defaultValue":"10.0.128.0/20",
+              "isRequired":true
+            },
+            {
+              "fieldId":"PublicSubnet2CIDR",
+              "fieldType":"TextInput",
+              "title":"Public subnet 2 CIDR",
+              "description":"CIDR block for the public subnet 2 located in Availability Zone 2.",
+              "validationRules":{
+                "validationType":"isValidCidr"
+              },
+              "defaultValue":"10.0.144.0/20",
+              "isRequired":true
+            },
+            {
+              "fieldId":"PublicSubnet3CIDR",
+              "fieldType":"TextInput",
+              "title":"Public subnet 3 CIDR",
+              "description":"CIDR block for the public subnet 2 located in Availability Zone 3.",
+              "validationRules":{
+                "validationType":"isValidCidr"
+              },
+              "defaultValue":"10.0.160.0/20",
+              "dependsOn": [
+                {
+                  "refFieldId": "NumberOfAZs",
+                  "function": "display",
+                  "value": "3"
+                }
+              ],
+              "isRequired":true
+            },
+            {
+              "fieldId":"RDGWCIDR",
+              "fieldType":"TextInput",
+              "title":"Allowed Remote Desktop Gateway external access ",
+              "placeholder":"Enter CIDR",
+              "description":"Allowed CIDR block for external access to the Remote Desktop Gateways.",
+              "validationRules":{
+                "validationType":"isValidCidr"
+              },
+              "defaultValue":"",
+              "isRequired":true
+            }
+          ]
+        },
+        {
+          "sectionId":"activeDirectoryConfigurationSection",
+          "sectionTitle":"Active Directory configuration",
+          "sectionOrder":3,
+          "fields":[
+            {
+              "fieldId":"ADScenarioType",
+              "fieldType":"StaticDropdown",
+              "title":"Active Directory scenario type",
+              "description":"Select the type of AD to use, either AWS Directory Service for Microsoft Active Directory or managing your own Amazon EC2 Active Directory instances.",
+              "defaultValue":"AWS Directory Service for Microsoft AD",
+              "isRequired":true,
+              "isProvisioningParameter":true,
+              "dropdownValues":[
+                {
+                  "label":"AWS Directory Service for Microsoft AD",
+                  "value":"AWS Directory Service for Microsoft AD"
+                },
+                {
+                  "label":"Microsoft AD on Amazon EC2",
+                  "value":"Microsoft AD on Amazon EC2"
+                }
+              ]
+            },
+            {
+              "fieldId":"DomainAdminUser",
+              "fieldType":"TextInput",
+              "title":"Domain Admin user name",
+              "description":"User name for the new local administrator account.",
+              "hintText":"Must be at least 8 characters containing letters and numbers.",
+              "validationRules":{
+                "minLength":"5",
+                "maxLength":"25",
+                "validationType":"AlphaNumeric"
+              },
+              "defaultValue":"Admin",
+              "isRequired":true
+            },
+            {
+              "fieldId":"DomainAdminPassword",
+              "fieldType":"Password",
+              "title":"Admin password",
+              "description":"Password for the administrative account.",
+              "placeholder":"Enter password",
+              "hintText":"Must be at least 8 characters containing letters, numbers and symbols",
+              "validationRules":{
+                "minLength":"8",
+                "maxLength":"32",
+                "customRegex":"(?=^.{6,255}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*"
+              },
+              "defaultValue":"",
+              "isRequired":true
+            },
+            {
+              "fieldId":"DomainNetBIOSName",
+              "fieldType":"TextInput",
+              "title":"Domain NetBIOS name",
+              "validationRules":{
+                "minLength":"1",
+                "maxLength":"15",
+                "customRegex":"^[^.][a-zA-Z0-9.]+[^:*?<>|`\\\\`]$"
+              },
+              "defaultValue":"EXAMPLE",
+              "description": "NetBIOS name of the domain for users of earlier Windows versions (up to 15 characters).",
+              "isRequired":true
+            },
+            {
+              "fieldId":"DomainDNSName",
+              "fieldType":"TextInput",
+              "title":"Domain DNS name",
+              "description": "Fully qualified domain name (FQDN) of the forest root domain.",
+              "validationRules":{
+                "minLength":"2",
+                "maxLength":"255",
+                "customRegex":"[a-zA-Z0-9\\-]+\\..+"
+              },
+              "defaultValue":"example.com",
+              "isRequired":true
+            },
+            {
+              "fieldId":"ADServer1NetBIOSName",
+              "fieldType":"TextInput",
+              "title":"Domain Controller 1 NetBIOS Name",
+              "description":"NetBIOS name of the first Active Directory server (up to 15 characters).",
+              "validationRules":{
+                "minLength":"1",
+                "maxLength":"15",
+                "customRegex":"^[^.][a-zA-Z0-9.]+[^:*?<>|`\\\\`]$"
+              },
+              "defaultValue":"DC1",
+              "dependsOn": [
+                {
+                  "refFieldId": "ADScenarioType",
+                  "function": "display",
+                  "value": "Microsoft AD on Amazon EC2"
+                }
+              ],
+              "isRequired":true
+            },
+            {
+              "fieldId":"ADServer1PrivateIP",
+              "fieldType":"TextInput",
+              "title":"Domain Controller 1 private IP address",
+              "description":"Fixed private IP address for the first Active Directory server, located in Availability Zone 1.",
+              "validationRules":{
+                "customRegex":"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+              },
+              "defaultValue":"10.0.0.10",
+              "dependsOn": [
+                {
+                  "refFieldId": "ADScenarioType",
+                  "function": "display",
+                  "value": "Microsoft AD on Amazon EC2"
+                }
+              ],
+              "isRequired":true
+            },
+            {
+              "fieldId":"ADServer1InstanceType",
+              "fieldType":"StaticDropdown",
+              "title":"Domain controller 1 instance type",
+              "description":"Amazon EC2 instance type for the first Active Directory instance.",
+              "defaultValue":"m5.xlarge",
+              "dropdownValues":[
+                {
+                  "label":"t2.large",
+                  "value":"t2.large"
+                },
+                {
+                  "label":"m4.large",
+                  "value":"m4.large"
+                },
+                {
+                  "label":"m4.xlarge",
+                  "value":"m4.xlarge"
+                },
+                {
+                  "label":"m4.2xlarge",
+                  "value":"m4.2xlarge"
+                },
+                {
+                  "label":"m4.4xlarge",
+                  "value":"m4.4xlarge"
+                },
+                {
+                  "label":"m5.large",
+                  "value":"m5.large"
+                },
+                {
+                  "label":"m5.xlarge",
+                  "value":"m5.xlarge"
+                },
+                {
+                  "label":"m5.2xlarge",
+                  "value":"m5.2xlarge"
+                },
+                {
+                  "label":"m5.4xlarge",
+                  "value":"m5.4xlarge"
+                }
+              ],
+              "dependsOn": [
+                {
+                  "refFieldId": "ADScenarioType",
+                  "function": "display",
+                  "value": "Microsoft AD on Amazon EC2"
+                }
+              ],
+              "isRequired":true,
+              "isProvisioningParameter":true
+            },
+            {
+              "fieldId":"ADServer2NetBIOSName",
+              "fieldType":"TextInput",
+              "title":"Domain Controller 2 NetBIOS Name",
+              "description":"NetBIOS name of the second Active Directory server (up to 15 characters).",
+              "validationRules":{
+                "minLength":"1",
+                "maxLength":"15",
+                "customRegex":"^[^.][a-zA-Z0-9.]+[^:*?<>|`\\\\`]$"
+              },
+              "defaultValue":"DC2",
+              "dependsOn": [
+                {
+                  "refFieldId": "ADScenarioType",
+                  "function": "display",
+                  "value": "Microsoft AD on Amazon EC2"
+                }
+              ],
+              "isRequired":true
+            },
+            {
+              "fieldId":"ADServer2PrivateIP",
+              "fieldType":"TextInput",
+              "title":"Domain Controller 2 private IP address",
+              "description":"Fixed private IP address for the second Active Directory server, located in Availability Zone 2.",
+              "validationRules":{
+                "customRegex":"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+              },
+              "defaultValue":"10.0.32.10",
+              "dependsOn": [
+                {
+                  "refFieldId": "ADScenarioType",
+                  "function": "display",
+                  "value": "Microsoft AD on Amazon EC2"
+                }
+              ],
+              "isRequired":true
+            },
+            {
+              "fieldId":"ADServer2InstanceType",
+              "fieldType":"StaticDropdown",
+              "title":"Domain controller 2 instance type",
+              "description":"Amazon EC2 instance type for the second Active Directory instance.",
+              "defaultValue":"m5.xlarge",
+              "dropdownValues":[
+                {
+                  "label":"t2.large",
+                  "value":"t2.large"
+                },
+                {
+                  "label":"m4.large",
+                  "value":"m4.large"
+                },
+                {
+                  "label":"m4.xlarge",
+                  "value":"m4.xlarge"
+                },
+                {
+                  "label":"m4.2xlarge",
+                  "value":"m4.2xlarge"
+                },
+                {
+                  "label":"m4.4xlarge",
+                  "value":"m4.4xlarge"
+                },
+                {
+                  "label":"m5.large",
+                  "value":"m5.large"
+                },
+                {
+                  "label":"m5.xlarge",
+                  "value":"m5.xlarge"
+                },
+                {
+                  "label":"m5.2xlarge",
+                  "value":"m5.2xlarge"
+                },
+                {
+                  "label":"m5.4xlarge",
+                  "value":"m5.4xlarge"
+                }
+              ],
+              "dependsOn": [
+                {
+                  "refFieldId": "ADScenarioType",
+                  "function": "display",
+                  "value": "Microsoft AD on Amazon EC2"
+                }
+              ],
+              "isRequired":true,
+              "isProvisioningParameter":true
+            }
+          ]
+        },
+        {
+          "sectionId":"rdgwConfigurationSection",
+          "sectionTitle":"Microsoft Remote Desktop Gateway configuration",
+          "sectionOrder":4,
+          "sectionHelpPanelHeader":"Microsoft Remote Desktop Gateway configuration",
+          "fields":[
+            {
+              "fieldId":"NumberOfRDGWHosts",
+              "fieldType":"NumericInput",
+              "title":"Number of Remote Desktop Gateway hosts",
+              "description":"Enter the number of Remote Desktop Gateway hosts to create",
+              "hintText":"Minumum 1. Maximum 4.",
+              "validationRules":{
+                "min":1,
+                "max":4,
+                "customRegex":"[0-4]"
+              },
+              "defaultValue":"1",
+              "isRequired":true
+            }
+          ]
+        },
+        {
+          "sectionId":"webpageConfigurations",
+          "sectionTitle":"IIS Webpage configurations",
+          "sectionOrder":6,
+          "sectionHelpPanelHeader":"IIS Webpage configurations",
+          "fields":[
+            {
+              "fieldId":"WebBucketName",
+              "fieldType":"LwdkS3Picker",
+              "title":"Webpage S3 Bucket",
+              "description":"Enter the bucket name where html file is located for IIS. If left blank, a sample page will be used.",
+              "isRequired":false,
+              "selectableItemsTypes": ["buckets"],
+              "defaultValue": ""
+            },
+            {
+              "fieldId":"WebBucketKey",
+              "fieldType":"LwdkS3Picker",
+              "title":"Webpage S3 Key",
+              "description":"Enter the bucket key where html file is located for IIS. Only change this if the S3 Bucket Webpage is specified, otherwise leave as default.",
+              "isRequired":false,
+              "selectableItemsTypes": ["objects", "versions"],
+              "defaultValue": "webfiles/index.html"
+            }
+          ]
+        },
+        {
+          "sectionId":"autoScalingGroupConfigurations",
+          "sectionTitle":"Auto Scaling group / Application Load Balancer configuration",
+          "sectionOrder":7,
+          "sectionHelpPanelHeader":"Auto Scaling group / Application Load Balancer configuration",
+          "fields":[
+            {
+              "fieldId":"ASGDesiredCapacity",
+              "fieldType":"NumericInput",
+              "title":"Desired capacity of the Auto Scaling group",
+              "placeholder":"Enter number",
+              "description":"Number of servers to use in the VPC.",
+              "hintText":"A minimum number of 2 and maximum number of 4 servers is allowed.",
+              "isRequired":true,
+              "validationRules":{
+                "validationType":"Numeric",
+                "min":2,
+                "max":4
+              }
+            },
+            {
+              "fieldId":"ASGMaxSize",
+              "fieldType":"NumericInput",
+              "title":"Auto Scaling group maximum instance size",
+              "placeholder":"Enter number",
+              "description":"Number of servers to use in the VPC.",
+              "hintText":"A minimum number of 2 and maximum number of 4 servers is allowed.",
+              "isRequired":true,
+              "validationRules":{
+                "validationType":"Numeric",
+                "min":2,
+                "max":4
+              }
+            },
+            {
+              "fieldId":"ASGMinSize",
+              "fieldType":"NumericInput",
+              "title":"Auto Scaling group minimum instance size",
+              "placeholder":"Enter number",
+              "description":"Number of servers to use in the VPC.",
+              "hintText":"A minimum number of 2 and maximum number of 4 servers is allowed.",
+              "isRequired":true,
+              "validationRules":{
+                "validationType":"Numeric",
+                "min":2,
+                "max":4
+              }
+            },
+            {
+              "fieldId":"WebAccessCIDR",
+              "fieldType":"TextInput",
+              "title":"WebAccess CIDR ",
+              "description": "The CIDR IP range that is permitted to access the Elastic Load Balancers.",
+              "validationRules":{
+                "validationType":"isValidCidr"
+              },
+              "defaultValue":"10.0.0.0/16",
+              "isRequired":true
+            },
+            {
+              "fieldId":"ELBSchemeParameter",
+              "fieldType":"StaticDropdown",
+              "title":"Elastic Load Balancing scheme",
+              "description":"Enter ELBSchemeParameter",
+              "placeholder":"Placeholder text",
+              "defaultValue":"internet-facing",
+              "isRequired":true,
+              "isProvisioningParameter":true,
+              "dropdownValues":[
+                {
+                  "label":"internet-facing",
+                  "value":"internet-facing"
+                },
+                {
+                  "label":"internal",
+                  "value":"internal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pageId":"page2",
+      "pageTitle":"Configure infrastructure settings",
+      "pageDescription":"",
+      "pageOrder":2,
+      "pageHelpPanelHeader":"Configure infrastructure settings",
+      "sections":[
+        {
+          "sectionTitle":"Storage and compute",
+          "sectionOrder":1,
+          "sectionId":"storageAndComputeSection",
+          "sectionHelpPanelBody":"",
+          "fields":[
+            {
+              "fieldId":"LWDKSizerWidget",
+              "fieldType":"LwdkTileOptionsComponent",
+              "title":"Define infrastructure requirements",
+              "defaultValue":"recommendationSizer",
+              "isRequired":true,
+              "tileWidgets":[
+                {
+                  "fieldId":"sizerWithRecommendation",
+                  "fieldType":"LwdkRecommendationSizerComponent",
+                  "tileOptions":[
+                    {
+                      "value":"recommendationSizer",
+                      "label":"Based on infrastructure suggestion"
+                    }
+                  ],
+                  "tileWidgetResources":[
+                    {
+                      "fieldId":"instanceTypeRecommendations",
+                      "title":"IIS Server Instance",
+                      "fieldComponents":[
+                        {
+                          "fieldId":"TotalCoreCount",
+                          "fieldType":"StaticDropdown",
+                          "title":"Cores",
+                          "description":"Number of vCPU cores that the instance requires",
+                          "placeholder":"Placeholder text",
+                          "defaultValue":"4",
+                          "isRequired":true,
+                          "isProvisioningParameter":false,
+                          "dropdownValues":[
+                            {
+                              "id":"0",
+                              "label":"4",
+                              "value":"4"
+                            },
+                            {
+                              "id":"1",
+                              "label":"8",
+                              "value":"8"
+                            },
+                            {
+                              "id":"2",
+                              "label":"16",
+                              "value":"16"
+                            }
+                          ]
+                        },
+                        {
+                          "fieldId":"NetworkPerformanceInMbps",
+                          "fieldType":"StaticDropdown",
+                          "title":"Network Performance (Gbps)",
+                          "description":"The network performance required for each node",
+                          "placeholder":"Placeholder text",
+                          "defaultValue":"1",
+                          "isRequired":true,
+                          "isProvisioningParameter":false,
+                          "dropdownValues":[
+                            {
+                              "id":"0",
+                              "label":"Upto 10 Gbps",
+                              "value":"0"
+                            },
+                            {
+                              "id":"1",
+                              "label":"Above 10 Gbps",
+                              "value":"1"
+                            }
+                          ]
+                        },
+                        {
+                          "fieldId":"MemoryInGB",
+                          "fieldType":"StaticDropdown",
+                          "title":"Memory (Gb)",
+                          "description":"The amount of memory required for each node",
+                          "placeholder":"Placeholder text",
+                          "defaultValue":"4",
+                          "isRequired":true,
+                          "isProvisioningParameter":false,
+                          "dropdownValues":[
+                            {
+                              "id":"0",
+                              "label":"4 Gb",
+                              "value":"4"
+                            },
+                            {
+                              "id":"1",
+                              "label":"8 Gb",
+                              "value":"8"
+                            }
+                          ]
+                        },
+                        {
+                          "fieldId":"IISServerInstanceType",
+                          "fieldType":"DynamicKeyValue",
+                          "title":"IIS Instance type",
+                          "description":"Recommended instance type",
+                          "placeholder":"Placeholder text",
+                          "defaultValue":"",
+                          "isRequired":true,
+                          "isProvisioningParameter":true,
+                          "keyValues":{
+                            "API":"GetInfrastructureSuggestion",
+                            "requestType":"EC2_INSTANCE",
+                            "requestParameters":[
+                              "Ref:TotalCoreCount",
+                              "Ref:NetworkPerformanceInMbps",
+                              "Ref:MemoryInGB"
+                            ],
+                            "allowedTypes":
+                            [
+                              "t3.micro",
+                              "t3.small",
+                              "t3.medium",
+                              "t3.large",
+                              "t3.xlarge",
+                              "t3.2xlarge",
+                              "m5.large",
+                              "m5.xlarge",
+                              "m5.2xlarge",
+                              "m5.4xlarge",
+                              "m5.8xlarge",
+                              "m5.12xlarge",
+                              "m5.16xlarge",
+                              "m5.24xlarge"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "fieldId":"rdgwInstanceTypeRecommendations",
+                      "title":"RDGW Instance",
+                      "fieldComponents":[
+                        {
+                          "fieldId":"TotalCoreCount",
+                          "fieldType":"StaticDropdown",
+                          "title":"Cores",
+                          "description":"Number of vCPU cores that the instance requires",
+                          "placeholder":"Placeholder text",
+                          "defaultValue":"4",
+                          "isRequired":true,
+                          "isProvisioningParameter":false,
+                          "dropdownValues":[
+                            {
+                              "id":"0",
+                              "label":"4",
+                              "value":"4"
+                            },
+                            {
+                              "id":"1",
+                              "label":"8",
+                              "value":"8"
+                            },
+                            {
+                              "id":"2",
+                              "label":"16",
+                              "value":"16"
+                            }
+                          ]
+                        },
+                        {
+                          "fieldId":"NetworkPerformanceInMbps",
+                          "fieldType":"StaticDropdown",
+                          "title":"Network Performance (Gbps)",
+                          "description":"The network performance required for each node",
+                          "placeholder":"Placeholder text",
+                          "defaultValue":"1",
+                          "isRequired":true,
+                          "isProvisioningParameter":false,
+                          "dropdownValues":[
+                            {
+                              "id":"0",
+                              "label":"Upto 10 Gbps",
+                              "value":"0"
+                            },
+                            {
+                              "id":"1",
+                              "label":"Above 10 Gbps",
+                              "value":"1"
+                            }
+                          ]
+                        },
+                        {
+                          "fieldId":"MemoryInGB",
+                          "fieldType":"StaticDropdown",
+                          "title":"Memory (Gb)",
+                          "description":"The amount of memory required for each node",
+                          "placeholder":"Placeholder text",
+                          "defaultValue":"4",
+                          "isRequired":true,
+                          "isProvisioningParameter":false,
+                          "dropdownValues":[
+                            {
+                              "id":"0",
+                              "label":"4 Gb",
+                              "value":"4"
+                            },
+                            {
+                              "id":"1",
+                              "label":"8 Gb",
+                              "value":"8"
+                            }
+                          ]
+                        },
+                        {
+                          "fieldId":"RDGWInstanceType",
+                          "fieldType":"DynamicKeyValue",
+                          "title":"RDGW Instance type",
+                          "description":"Recommended instance type",
+                          "placeholder":"Placeholder text",
+                          "defaultValue":"",
+                          "isRequired":true,
+                          "isProvisioningParameter":true,
+                          "keyValues":{
+                            "API":"GetInfrastructureSuggestion",
+                            "requestType":"EC2_INSTANCE",
+                            "requestParameters":[
+                              "Ref:TotalCoreCount",
+                              "Ref:NetworkPerformanceInMbps",
+                              "Ref:MemoryInGB"
+                            ],
+                            "allowedTypes":[
+                              "t2.large",
+                              "t3.micro",
+                              "t3.small",
+                              "t3.medium",
+                              "t3.large",
+                              "t3.xlarge",
+                              "t3.2xlarge",
+                              "t3a.micro",
+                              "t3a.small",
+                              "t3a.medium",
+                              "t3a.large",
+                              "t3a.xlarge",
+                              "t3a.2xlarge",
+                              "m5.large",
+                              "m5.xlarge",
+                              "m5.2xlarge",
+                              "m5a.large",
+                              "m5a.xlarge",
+                              "m5a.2xlarge"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "fieldId":"iisSizerWithStaticValue",
+                  "fieldType":"LwdkStaticSizerComponent",
+                  "tileOptions":[
+                    {
+                      "value":"staticSizer",
+                      "label":"Based on static values"
+                    }
+                  ],
+                  "tileWidgetResources":[
+                    {
+                      "fieldComponents":[
+                        {
+                          "fieldId":"IISServerInstanceType",
+                          "fieldType":"StaticDropdown",
+                          "title":"IIS Server Instance Type",
+                          "dropdownValues":[
+                            {
+                              "label":"t3.micro",
+                              "value":"t3.micro"
+                            },
+                            {
+                              "label":"t3.small",
+                              "value":"t3.small"
+                            },
+                            {
+                              "label":"t3.medium",
+                              "value":"t3.medium"
+                            },
+                            {
+                              "label":"t3.large",
+                              "value":"t3.large"
+                            },
+                            {
+                              "label":"t3.xlarge",
+                              "value":"t3.xlarge"
+                            },
+                            {
+                              "label":"t3.2xlarge",
+                              "value":"t3.2xlarge"
+                            },
+                            {
+                              "label":"m5.large",
+                              "value":"m5.large"
+                            },
+                            {
+                              "label":"m5.xlarge",
+                              "value":"m5.xlarge"
+                            },
+                            {
+                              "label":"m5.2xlarge",
+                              "value":"m5.2xlarge"
+                            },
+                            {
+                              "label":"m5.4xlarge",
+                              "value":"m5.4xlarge"
+                            },
+                            {
+                              "label":"m5.8xlarge",
+                              "value":"m5.8xlarge"
+                            },
+                            {
+                              "label":"m5.12xlarge",
+                              "value":"m5.12xlarge"
+                            },
+                            {
+                              "label":"m5.16xlarge",
+                              "value":"m5.16xlarge"
+                            },
+                            {
+                              "label":"m5.24xlarge",
+                              "value":"m5.24xlarge"
+                            }
+                          ],
+                          "defaultValue":"t3.micro",
+                          "isRequired":true
+                        },
+                        {
+                          "fieldId":"RDGWInstanceType",
+                          "fieldType":"StaticDropdown",
+                          "title":"Remote Desktop Gateway Instance Type",
+                          "dropdownValues":[
+                            {
+                              "label":"t2.large",
+                              "value":"t2.large"
+                            },
+                            {
+                              "label":"t3.micro",
+                              "value":"t3.micro"
+                            },
+                            {
+                              "label":"t3.small",
+                              "value":"t3.small"
+                            },
+                            {
+                              "label":"t3.medium",
+                              "value":"t3.medium"
+                            },
+                            {
+                              "label":"t3.large",
+                              "value":"t3.large"
+                            },
+                            {
+                              "label":"t3.xlarge",
+                              "value":"t3.xlarge"
+                            },
+                            {
+                              "label":"t3.2xlarge",
+                              "value":"t3.2xlarge"
+                            },
+                            {
+                              "label":"t3a.micro",
+                              "value":"t3a.micro"
+                            },
+                            {
+                              "label":"t3a.small",
+                              "value":"t3a.small"
+                            },
+                            {
+                              "label":"t3a.medium",
+                              "value":"t3a.medium"
+                            },
+                            {
+                              "label":"t3a.large",
+                              "value":"t3a.large"
+                            },
+                            {
+                              "label":"t3a.xlarge",
+                              "value":"t3a.xlarge"
+                            },
+                            {
+                              "label":"t3a.2xlarge",
+                              "value":"t3a.2xlarge"
+                            },
+                            {
+                              "label":"m5.large",
+                              "value":"m5.large"
+                            },
+                            {
+                              "label":"m5.xlarge",
+                              "value":"m5.xlarge"
+                            },
+                            {
+                              "label":"m5.2xlarge",
+                              "value":"m5.2xlarge"
+                            },
+                            {
+                              "label":"m5a.large",
+                              "value":"m5a.large"
+                            },
+                            {
+                              "label":"m5a.xlarge",
+                              "value":"m5a.xlarge"
+                            },
+                            {
+                              "label":"m5a.2xlarge",
+                              "value":"m5a.2xlarge"
+                            }
+                          ],
+                          "defaultValue":"t3.micro",
+                          "isRequired":true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sectionTitle":"Estimated on-demand cost to deploy additional resources",
+          "sectionDescription":"Estimate of charges incurred to deploy the following resources.",
+          "sectionOrder":2,
+          "sectionId":"costSection",
+          "sectionFooter":"This is only an estimate of AWS costs to deploy additional resources and does not include any taxes or discounts that may apply. Actual fees depend on many factors, including actual usage of AWS services.",
+          "fields":[
+            {
+              "fieldId":"ec2InstanceCost",
+              "fieldType":"LWDKCostComponent",
+              "dropdownValues":{
+                "API":"GetResourceCostEstimate",
+                "resourceSpecifications":[
+                  {
+                    "resourceTypeServiceCode":"AmazonEC2",
+                    "requestParameters":{
+                      "instanceType":"Ref:RDGWInstanceType",
+                      "operatingSystem":"windows",
+                      "Tenancy":"Shared",
+                      "capacitystatus":"Used",
+                      "licenseModel":"No License required",
+                      "preInstalledSw":"NA"
+                    },
+                    "header":"Instance type",
+                    "title":"RDGW instance type",
+                    "numberOfResources":"Ref:NumberOfRDGWHosts"
+                  },
+                  {
+                    "resourceTypeServiceCode":"AmazonEC2",
+                    "requestParameters":{
+                      "instanceType":"Ref:IISServerInstanceType",
+                      "operatingSystem":"windows",
+                      "Tenancy":"Shared",
+                      "capacitystatus":"Used",
+                      "licenseModel":"No License required",
+                      "preInstalledSw":"NA"
+                    },
+                    "header":"Instance type",
+                    "title":"IIS instance type",
+                    "numberOfResources":"Ref:ASGDesiredCapacity"
+                  },
+                  {
+                    "resourceTypeServiceCode":"AmazonEC2",
+                    "requestParameters":{
+                      "instanceType":"Ref:ADServer1InstanceType",
+                      "operatingSystem":"windows",
+                      "Tenancy":"Shared",
+                      "capacitystatus":"Used",
+                      "licenseModel":"No License required",
+                      "preInstalledSw":"NA"
+                    },
+                    "header":"Instance type",
+                    "title":"Domain controller 1 instance type",
+                    "numberOfResources":"1",
+                    "dependsOn": [
+                      {
+                        "refFieldId": "ADScenarioType",
+                        "function": "display",
+                        "value": "Microsoft AD on Amazon EC2"
+                      }
+                    ]
+                  },
+                  {
+                    "resourceTypeServiceCode":"AmazonEC2",
+                    "requestParameters":{
+                      "instanceType":"Ref:ADServer2InstanceType",
+                      "operatingSystem":"windows",
+                      "Tenancy":"Shared",
+                      "capacitystatus":"Used",
+                      "licenseModel":"No License required",
+                      "preInstalledSw":"NA"
+                    },
+                    "header":"Instance type",
+                    "title":"Domain controller 2 instance type",
+                    "numberOfResources":"1",
+                    "dependsOn": [
+                      {
+                        "refFieldId": "ADScenarioType",
+                        "function": "display",
+                        "value": "Microsoft AD on Amazon EC2"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "isRequired":false,
+              "isProvisioningParameter":false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
